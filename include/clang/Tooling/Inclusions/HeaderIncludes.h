@@ -32,7 +32,6 @@ public:
   /// 0. Otherwise, returns the priority of the matching category or INT_MAX.
   /// NOTE: this API is not thread-safe!
   int getIncludePriority(StringRef IncludeName, bool CheckMainHeader) const;
-
 private:
   bool isMainHeader(StringRef IncludeName) const;
 

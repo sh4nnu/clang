@@ -525,6 +525,14 @@ struct FormatToken {
     return T && T->is(tok::kw_auto);
   }
 
+  /// Returns whether the token is a Bit field, and checks whether
+  /// the Style is C / C++.
+  bool isBitField() const {
+    const FormatToken *T = this;
+    T = T->getPreviousNonComment();
+    return (T->Tok.is(tok::comma) && Tok.is(tok::identifier) &&
+            T->Next->Tok.is(tok::colon));
+  }
   /// Same as opensBlockOrBlockTypeList, but for the closing token.
   bool closesBlockOrBlockTypeList(const FormatStyle &Style) const {
     if (is(TT_TemplateString) && closesScope())

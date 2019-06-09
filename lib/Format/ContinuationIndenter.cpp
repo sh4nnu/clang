@@ -329,6 +329,9 @@ bool ContinuationIndenter::canBreak(const LineState &State) {
 bool ContinuationIndenter::mustBreak(const LineState &State) {
   const FormatToken &Current = *State.NextToken;
   const FormatToken &Previous = *Current.Previous;
+
+  if (Style.isCpp() && Current.isBitField() && Style.BitFieldDeclarationsOnePerLine)
+    return true;     
   if (Current.MustBreakBefore || Current.is(TT_InlineASMColon))
     return true;
   if (State.Stack.back().BreakBeforeClosingBrace &&
@@ -541,7 +544,7 @@ void ContinuationIndenter::addTokenOnCurrentLine(LineState &State, bool DryRun,
                                                  unsigned ExtraSpaces) {
   FormatToken &Current = *State.NextToken;
   const FormatToken &Previous = *State.NextToken->Previous;
-  if (Current.is(tok::equal) &&
+  if (Current.isOneOf(tok::equal, tok::colon) &&
       (State.Line->First->is(tok::kw_for) || Current.NestingLevel == 0) &&
       State.Stack.back().VariablePos == 0) {
     State.Stack.back().VariablePos = State.Column;

@@ -190,8 +190,6 @@ the configuration (without a prefix: ``Auto``).
       someLongFunction(
           argument1, argument2);
 
-
-
 **AlignConsecutiveAssignments** (``bool``)
   If ``true``, aligns consecutive assignments.
 
@@ -731,6 +729,18 @@ the configuration (without a prefix: ``Auto``).
     void f(int aaaaaaaaaaaaaaaaaaaa,
            int aaaaaaaaaaaaaaaaaaaa,
            int aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {}
+
+**BitFieldDeclarationsOnePerLine** (``bool``)
+  If ``true``, Align Bitfield Declarations on separate lines.
+
+  This will align Bitfield declarations on consecutive lines. This
+  will result in formatting like:
+
+  .. code-block:: c++
+
+    unsigned int  baz : 1,
+                  fuz : 5,
+                  zap : 2;
 
 **BraceWrapping** (``BraceWrappingFlags``)
   Control of individual brace wrapping cases.

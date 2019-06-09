@@ -462,6 +462,7 @@ template <> struct MappingTraits<FormatStyle> {
     IO.mapOptional("JavaScriptWrapImports", Style.JavaScriptWrapImports);
     IO.mapOptional("KeepEmptyLinesAtTheStartOfBlocks",
                    Style.KeepEmptyLinesAtTheStartOfBlocks);
+    IO.mapOptional("BitFieldDeclarationsOnePerLine", Style.BitFieldDeclarationsOnePerLine);
     IO.mapOptional("MacroBlockBegin", Style.MacroBlockBegin);
     IO.mapOptional("MacroBlockEnd", Style.MacroBlockEnd);
     IO.mapOptional("MaxEmptyLinesToKeep", Style.MaxEmptyLinesToKeep);
@@ -1041,6 +1042,7 @@ FormatStyle getNetBSDStyle() {
 	  NetBSDStyle.AlignTrailingComments = true;
 	  NetBSDStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_AllDefinitions;
 	  NetBSDStyle.AlignConsecutiveMacros = true;
+    NetBSDStyle.BitFieldDeclarationsOnePerLine = true;
 	  NetBSDStyle.BreakBeforeBraces = FormatStyle::BS_Mozilla;
 	  NetBSDStyle.ColumnLimit = 80;
 	  NetBSDStyle.ContinuationIndentWidth = 4;

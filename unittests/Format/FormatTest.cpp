@@ -3749,6 +3749,18 @@ TEST_F(FormatTest, PreventConfusingIndents) {
                "#define A Just forcing a new line\n"
                "            ddd);");
 }
+TEST_F(FormatTest, AlignBitFieldDeclarationsOnConsecutiveLines){
+  FormatStyle Style = {};
+  Style.BitFieldDeclarationsOnePerLine = true;
+  verifyFormat(
+    "unsigned int baz : 11,\n"
+    "             aaa : 2,\n"
+    "             foo : 3"
+  );
+  Style.BitFieldDeclarationsOnePerLine = false;
+  verifyFormat(
+    "unsigned int baz : 11, aaa : 2, foo : 3");
+} 
 
 TEST_F(FormatTest, LineBreakingInBinaryExpressions) {
   verifyFormat(

@@ -114,6 +114,16 @@ struct FormatStyle {
   /// \endcode
   bool AlignConsecutiveDeclarations;
 
+  /// If ``true``, Linesup Bitfield Declarations.
+  /// This will lineup Bitfield declarations on consecutive lines. This
+  /// will result in formatting like
+  /// \code
+  ///  unsigned int  baz : 1, /* Bitfield; line up entries if desire*/
+  ///    fuz : 5,
+  ///    zap : 2;
+  /// \endcode
+  bool BitFieldDeclarationsOnePerLine;
+
   /// Different styles for aligning escaped newlines.
   enum EscapedNewlineAlignmentStyle {
     /// Don't align escaped newlines.
@@ -1966,6 +1976,7 @@ struct FormatStyle {
                R.AlwaysBreakTemplateDeclarations &&
            BinPackArguments == R.BinPackArguments &&
            BinPackParameters == R.BinPackParameters &&
+           BitFieldDeclarationsOnePerLine == R.BitFieldDeclarationsOnePerLine &&
            BreakBeforeBinaryOperators == R.BreakBeforeBinaryOperators &&
            BreakBeforeBraces == R.BreakBeforeBraces &&
            BreakBeforeTernaryOperators == R.BreakBeforeTernaryOperators &&

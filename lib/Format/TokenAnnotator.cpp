@@ -2927,6 +2927,9 @@ static bool isAllmanBrace(const FormatToken &Tok) {
 bool TokenAnnotator::mustBreakBefore(const AnnotatedLine &Line,
                                      const FormatToken &Right) {
   const FormatToken &Left = *Right.Previous;
+  if (Right.Previous->is(tok::comma) && Style.BitFieldDeclarationsOnePerLine &&
+      Right.is(tok::identifier) && (Right.Next->is(tok::colon)))
+    return true;
   if (Right.NewlinesBefore > 1 && Style.MaxEmptyLinesToKeep > 0)
     return true;
 
