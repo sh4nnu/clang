@@ -3659,6 +3659,8 @@ TEST_F(FormatTest, LayoutNestedBlocks) {
 }
 
 TEST_F(FormatTest, FormatNestedBlocksInMacros) {
+  FormatStyle Style = getGoogleStyle();
+  Style.SpacesBeforeTrailingComments = 0;
   EXPECT_EQ("#define MACRO()                     \\\n"
             "  Debug(aaa, /* force line break */ \\\n"
             "        {                           \\\n"
@@ -3667,7 +3669,7 @@ TEST_F(FormatTest, FormatNestedBlocksInMacros) {
             "        })",
             format("#define   MACRO()   Debug(aaa,  /* force line break */ \\\n"
                    "          {  int   i;  int  j;   })",
-                   getGoogleStyle()));
+                   Style));
 
   EXPECT_EQ("#define A                                       \\\n"
             "  [] {                                          \\\n"

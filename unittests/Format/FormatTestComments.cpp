@@ -2600,6 +2600,33 @@ TEST_F(FormatTestComments, IndentLineCommentsInStartOfBlockAtEndOfFile) {
                "  // b");
 }
 
+TEST_F(FormatTestComments, SpacesBeforeTrailingBlockComments){
+  FormatStyle Style = getGoogleStyle();
+  Style.SpacesBeforeTrailingComments = 4;
+  EXPECT_EQ("int a;    /*a*/\n"
+            "int b;    /*a*/\n"
+            "int c;    /*a*/\n"
+            "int d;    /*a*/\n"
+            "int e;    /*a*/\n"
+            "int f;    /*a*/\n"
+            "int g;    /*a*/\n"
+            "int h;    /*a*/",
+            format("int a; /*a*/\n"
+                   "int b; /*a*/\n"
+                   "int c; /*a*/\n"
+                   "int d; /*a*/\n"
+                   "int e; /*a*/\n"
+                   "int f; /*a*/\n"
+                   "int g; /*a*/\n"
+                   "int h; /*a*/", Style));
+  EXPECT_EQ("#define A           \\\n"
+            "  int i;      /*a*/ \\\n"
+            "  int jjj;    /*b*/",
+            format("#define A        \\\n"
+                   "  int i;   /*a*/ \\\n"
+                   "  int jjj; /*b*/", Style));
+
+}
 TEST_F(FormatTestComments, AlignTrailingComments) {
   EXPECT_EQ("#define MACRO(V)                       \\\n"
             "  V(Rt2) /* one more char */           \\\n"

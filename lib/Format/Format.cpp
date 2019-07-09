@@ -1023,6 +1023,31 @@ FormatStyle getMicrosoftStyle(FormatStyle::LanguageKind Language) {
   return Style;
 }
 
+FormatStyle getNetBSDStyle() {
+  FormatStyle NetBSDStyle = getLLVMStyle();
+  NetBSDStyle.AlignTrailingComments = true;
+  NetBSDStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_AllDefinitions;
+  NetBSDStyle.AlignConsecutiveMacros = true;
+  NetBSDStyle.BreakBeforeBraces = FormatStyle::BS_Mozilla;
+  NetBSDStyle.ColumnLimit = 80;
+  NetBSDStyle.ContinuationIndentWidth = 4;
+  NetBSDStyle.Cpp11BracedListStyle = false;
+  NetBSDStyle.FixNamespaceComments = true;
+  NetBSDStyle.IncludeStyle.IncludeBlocks = tooling::IncludeStyle::IBS_Regroup;
+  NetBSDStyle.IncludeStyle.IncludeCategories = {
+      {"^<sys/", 7},        {"^<uvm/", 6},  {"^<(net.*|protocols)/", 5},
+      {"^<(fs*)", 4},       {"^<path*", 3}, {"^<[^\/].*\.h>", 2},
+      {"^\"\w.*\.h\"$", 1}, {".*", 0}};
+  NetBSDStyle.IndentCaseLabels = false;
+  NetBSDStyle.IndentWidth = 8;
+  // NetBSDStyle.BitFieldDeclarationsOnePerLine = true;
+  // NetBSDStyle.SortNetBSDIncludes = true;
+  NetBSDStyle.SpacesBeforeTrailingComments = 4;
+  NetBSDStyle.TabWidth = 8;
+  NetBSDStyle.UseTab = FormatStyle::UT_Always;
+  return NetBSDStyle;
+}
+
 FormatStyle getNoStyle() {
   FormatStyle NoStyle = getLLVMStyle();
   NoStyle.DisableFormat = true;
@@ -1047,6 +1072,8 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
     *Style = getGNUStyle();
   } else if (Name.equals_lower("microsoft")) {
     *Style = getMicrosoftStyle(Language);
+  } else if (Name.equals_lower("netbsd")) {
+    *Style = getNetBSDStyle();
   } else if (Name.equals_lower("none")) {
     *Style = getNoStyle();
   } else {
