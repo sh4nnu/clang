@@ -2163,6 +2163,13 @@ void TokenAnnotator::calculateFormattingInformation(AnnotatedLine &Line) {
   while (Current) {
     if (isFunctionDeclarationName(*Current, Line))
       Current->Type = TT_FunctionDeclarationName;
+    if (Current->is(TT_BlockComment)){
+    if ((Line.Type != LT_PreprocessorDirective)){
+      if (!Current->Previous->is(TT_TemplateCloser) && Current->isTrailingComment()){
+        Current->SpacesRequiredBefore = Style.SpacesBeforeTrailingComments;
+      }
+   }
+    }
     if (Current->is(TT_LineComment)) {
       if (Current->Previous->BlockKind == BK_BracedInit &&
           Current->Previous->opensScope())
