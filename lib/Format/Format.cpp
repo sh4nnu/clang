@@ -1727,6 +1727,7 @@ struct IncludeDirective {
   StringRef Text;
   unsigned Offset;
   int Category;
+  int Priority;
 };
 
 struct JavaImportDirective {
@@ -1790,6 +1791,7 @@ static void sortCppIncludes(const FormatStyle &Style,
                             ArrayRef<tooling::Range> Ranges, StringRef FileName,
                             StringRef Code, tooling::Replacements &Replaces,
                             unsigned *Cursor) {
+  tooling::IncludeCategoryManager Categories(Style.IncludeStyle, FileName);
   unsigned IncludesBeginOffset = Includes.front().Offset;
   unsigned IncludesEndOffset =
       Includes.back().Offset + Includes.back().Text.size();
@@ -1797,11 +1799,12 @@ static void sortCppIncludes(const FormatStyle &Style,
   if (!affectsRange(Ranges, IncludesBeginOffset, IncludesEndOffset))
     return;
   SmallVector<unsigned, 16> Indices;
-  for (unsigned i = 0, e = Includes.size(); i != e; ++i)
+  for (unsigned i = 0, e = Includes.size(); i != e; ++i) {
     Indices.push_back(i);
+  }
   llvm::stable_sort(Indices, [&](unsigned LHSI, unsigned RHSI) {
-    return std::tie(Includes[LHSI].Category, Includes[LHSI].Filename) <
-           std::tie(Includes[RHSI].Category, Includes[RHSI].Filename);
+    return std::tie(Includes[LHSI].Priority, Includes[LHSI].Filename) <
+           std::tie(Includes[RHSI].Priority, Includes[RHSI].Filename);
   });
   // The index of the include on which the cursor will be put after
   // sorting/deduplicating.
@@ -1916,9 +1919,12 @@ tooling::Replacements sortCppIncludes(const FormatStyle &Style, StringRef Code,
         int Category = Categories.getIncludePriority(
             IncludeName,
             /*CheckMainHeader=*/!MainIncludeFound && FirstIncludeBlock);
+        int Priority = Categories.getSortIncludePriority(
+            IncludeName,
+            !MainIncludeFound && FirstIncludeBlock);
         if (Category == 0)
           MainIncludeFound = true;
-        IncludesInBlock.push_back({IncludeName, Line, Prev, Category});
+        IncludesInBlock.push_back({IncludeName, Line, Prev, Category, Priority});
       } else if (!IncludesInBlock.empty() && !EmptyLineSkipped) {
         sortCppIncludes(Style, IncludesInBlock, Ranges, FileName, Code,
                         Replaces, Cursor);
