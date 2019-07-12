@@ -2072,6 +2072,10 @@ FormatStyle getWebKitStyle();
 /// http://www.gnu.org/prep/standards/standards.html
 FormatStyle getGNUStyle();
 
+/// Returns a format style complying with NetBSD Coding Standards:
+/// http://cvsweb.netbsd.org/bsdweb.cgi/src/share/misc/style?rev=HEAD&content-type=text/x-cvsweb-markup
+FormatStyle getNetBSDStyle();
+
 /// Returns style indicating formatting should be not applied at all.
 FormatStyle getNoStyle();
 

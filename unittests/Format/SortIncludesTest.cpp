@@ -70,6 +70,67 @@ TEST_F(SortIncludesTest, BasicSorting) {
                  {tooling::Range(25, 1)}));
 }
 
+TEST_F(SortIncludesTest, ParamAndTypesCheck) {
+  FmtStyle = getNetBSDStyle();
+  EXPECT_EQ("#include <sys/param.h>\n"
+      "#include <sys/types.h>\n"
+      "#include <sys/ioctl.h>\n"
+      "#include <sys/socket.h>\n"
+      "#include <sys/stat.h>\n"
+      "#include <sys/wait.h>\n",
+      sort("#include <sys/ioctl.h>\n"
+         "#include <sys/stat.h>\n"
+         "#include <sys/socket.h>\n"
+         "#include <sys/types.h>\n"
+         "#include <sys/param.h>\n"
+         "#include <sys/wait.h>\n"));
+  
+}
+
+TEST_F(SortIncludesTest, SortedIncludesInSingleBlockReGroupWithNetBSDSpecifications) {
+  FmtStyle = getNetBSDStyle();
+  EXPECT_EQ("#include <sys/param.h>\n"  
+      "#include <sys/types.h>\n"  
+      "#include <sys/ioctl.h>\n"  
+      "#include <sys/socket.h>\n" 
+      "#include <sys/stat.h>\n"
+      "#include <sys/wait.h>\n"
+      "\n"
+      "#include <net/if.h>\n"
+      "#include <net/if_dl.h>\n"
+      "#include <net/route.h>\n"
+      "#include <netinet/in.h>\n"
+      "#include <protocols/rwhod.h>\n"
+      "\n"
+      "#include <assert.h>\n"
+      "#include <errno.h>\n"
+      "#include <inttypes.h>\n"
+      "#include <stdio.h>\n"
+      "#include <stdlib.h>\n"
+      "\n"
+      "#include <paths.h>\n"
+      "\n"
+      "#include \"pathnames.h\"\n",
+      sort("#include <sys/param.h>\n"
+                 "#include <sys/types.h>\n"    
+           "#include <sys/ioctl.h>\n"    
+           "#include <net/if_dl.h>\n"
+           "#include <net/route.h>\n"
+           "#include <netinet/in.h>\n"
+           "#include <sys/socket.h>\n"  
+           "#include <sys/stat.h>\n"
+           "#include <sys/wait.h>\n"    
+           "#include <net/if.h>\n"
+           "#include <protocols/rwhod.h>\n"
+           "#include <assert.h>\n"
+           "#include <paths.h>\n"
+           "#include \"pathnames.h\"\n"    
+           "#include <errno.h>\n"
+           "#include <inttypes.h>\n"
+           "#include <stdio.h>\n"
+           "#include <stdlib.h>\n"));
+}
+
 TEST_F(SortIncludesTest, NoReplacementsForValidIncludes) {
   // Identical #includes have led to a failure with an unstable sort.
   std::string Code = "#include <a>\n"

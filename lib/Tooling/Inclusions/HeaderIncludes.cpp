@@ -199,6 +199,15 @@ int IncludeCategoryManager::getIncludePriority(StringRef IncludeName,
   return Ret;
 }
 
+int IncludeCategoryManager::getSortIncludePriority(StringRef IncludeName) const {
+  int Ret = INT_MAX;
+  for (unsigned i = 0, e = CategoryRegexs.size(); i != e; ++i)
+    if (CategoryRegexs[i].match(IncludeName)) {
+      Ret = Style.IncludeCategories[i].SortPriority;
+      break;
+    }
+  return Ret;
+}
 bool IncludeCategoryManager::isMainHeader(StringRef IncludeName) const {
   if (!IncludeName.startswith("\""))
     return false;

@@ -1022,6 +1022,39 @@ FormatStyle getMicrosoftStyle(FormatStyle::LanguageKind Language) {
   return Style;
 }
 
+FormatStyle getNetBSDStyle() {
+  FormatStyle NetBSDStyle = getLLVMStyle();
+  NetBSDStyle.AlignTrailingComments = true;
+  NetBSDStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_AllDefinitions;
+  NetBSDStyle.AlignConsecutiveMacros = true;
+  NetBSDStyle.BreakBeforeBraces = FormatStyle::BS_Mozilla;
+  NetBSDStyle.ColumnLimit = 80;
+  NetBSDStyle.ContinuationIndentWidth = 4;
+  NetBSDStyle.Cpp11BracedListStyle = false;
+  NetBSDStyle.FixNamespaceComments = true;
+  NetBSDStyle.IndentCaseLabels = false;
+  NetBSDStyle.IndentWidth = 8;
+  NetBSDStyle.IncludeStyle.IncludeBlocks = tooling::IncludeStyle::IBS_Regroup;
+  NetBSDStyle.IncludeStyle.IncludeCategories = {
+      {"^<sys/param\.h>", 1, 0},
+      {"^<sys/types\.h>", 1, 1},
+      {"^<sys.*/", 1, 2},
+      {"^<uvm/", 2, 3},
+      {"^<machine/", 3, 4},
+      {"^<dev/", 4, 5},
+      {"^<net.*/", 5, 6},
+      {"^<protocols/", 5, 7},
+      {"^<(fs|miscfs|msdosfs|nfs|ntfs|ufs)/", 6, 8},
+      {"^<(x86|amd64|i386|xen)/", 7, 8},
+      {"<path", 8, 10},
+      {"^\<[^/].*\.h>", 9, 11},
+      {"^\".*\.h\"", 10, 12}};
+  NetBSDStyle.SortIncludes = true;
+  NetBSDStyle.TabWidth = 8;
+  NetBSDStyle.UseTab = FormatStyle::UT_Always;
+  return NetBSDStyle;
+}
+
 FormatStyle getNoStyle() {
   FormatStyle NoStyle = getLLVMStyle();
   NoStyle.DisableFormat = true;
@@ -1046,6 +1079,8 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
     *Style = getGNUStyle();
   } else if (Name.equals_lower("microsoft")) {
     *Style = getMicrosoftStyle(Language);
+  } else if (Name.equals_lower("netbsd")) {
+    *Style = getNetBSDStyle();
   } else if (Name.equals_lower("none")) {
     *Style = getNoStyle();
   } else {
@@ -1776,6 +1811,7 @@ static void sortCppIncludes(const FormatStyle &Style,
                             ArrayRef<tooling::Range> Ranges, StringRef FileName,
                             StringRef Code, tooling::Replacements &Replaces,
                             unsigned *Cursor) {
+  tooling::IncludeCategoryManager Categories(Style.IncludeStyle, FileName);
   unsigned IncludesBeginOffset = Includes.front().Offset;
   unsigned IncludesEndOffset =
       Includes.back().Offset + Includes.back().Text.size();
@@ -1783,11 +1819,15 @@ static void sortCppIncludes(const FormatStyle &Style,
   if (!affectsRange(Ranges, IncludesBeginOffset, IncludesEndOffset))
     return;
   SmallVector<unsigned, 16> Indices;
-  for (unsigned i = 0, e = Includes.size(); i != e; ++i)
+  SmallVector<unsigned, 16> IncludesPriority;
+  for (unsigned i = 0, e = Includes.size(); i != e; ++i) {
+    IncludesPriority.push_back(
+        Categories.getSortIncludePriority(Includes[i].Filename));
     Indices.push_back(i);
+  }
   llvm::stable_sort(Indices, [&](unsigned LHSI, unsigned RHSI) {
-    return std::tie(Includes[LHSI].Category, Includes[LHSI].Filename) <
-           std::tie(Includes[RHSI].Category, Includes[RHSI].Filename);
+    return std::tie(IncludesPriority[LHSI], Includes[LHSI].Filename) <
+           std::tie(IncludesPriority[RHSI], Includes[RHSI].Filename);
   });
   // The index of the include on which the cursor will be put after
   // sorting/deduplicating.
