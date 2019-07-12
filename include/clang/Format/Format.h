@@ -114,6 +114,8 @@ struct FormatStyle {
   /// \endcode
   bool AlignConsecutiveDeclarations;
 
+  bool AlignConsecutiveLists;
+
   /// Different styles for aligning escaped newlines.
   enum EscapedNewlineAlignmentStyle {
     /// Don't align escaped newlines.
@@ -1942,6 +1944,7 @@ struct FormatStyle {
            AlignAfterOpenBracket == R.AlignAfterOpenBracket &&
            AlignConsecutiveAssignments == R.AlignConsecutiveAssignments &&
            AlignConsecutiveDeclarations == R.AlignConsecutiveDeclarations &&
+           AlignConsecutiveLists == R.AlignConsecutiveLists &&
            AlignEscapedNewlines == R.AlignEscapedNewlines &&
            AlignOperands == R.AlignOperands &&
            AlignTrailingComments == R.AlignTrailingComments &&
@@ -2107,6 +2110,10 @@ FormatStyle getWebKitStyle();
 /// Returns a format style complying with GNU Coding Standards:
 /// http://www.gnu.org/prep/standards/standards.html
 FormatStyle getGNUStyle();
+
+/// Returns a format style complying with NetBSD Coding Standards:
+/// http://cvsweb.netbsd.org/bsdweb.cgi/src/share/misc/style?rev=HEAD&content-type=text/x-cvsweb-markup
+FormatStyle getNetBSDStyle();
 
 /// Returns style indicating formatting should be not applied at all.
 FormatStyle getNoStyle();
