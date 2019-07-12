@@ -13,6 +13,7 @@
 
 #include "WhitespaceManager.h"
 #include "llvm/ADT/STLExtras.h"
+#include <iostream>
 
 namespace clang {
 namespace format {
@@ -43,7 +44,7 @@ WhitespaceManager::Change::Change(const FormatToken &Tok,
       StartOfBlockComment(nullptr), IndentationOffset(0) {}
 
 void WhitespaceManager::replaceWhitespace(FormatToken &Tok, unsigned Newlines,
-                                          unsigned Spaces,
+                                          unsigned Spaces,aiki
                                           unsigned StartOfTokenColumn,
                                           bool InPPDirective) {
   if (Tok.Finalized)
@@ -94,6 +95,7 @@ const tooling::Replacements &WhitespaceManager::generateReplacements() {
   alignConsecutiveMacros();
   alignConsecutiveDeclarations();
   alignConsecutiveAssignments();
+  alignConsecutiveLists();
   alignTrailingComments();
   alignEscapedNewlines();
   generateChanges();
@@ -275,6 +277,7 @@ AlignTokenSequence(unsigned Start, unsigned End, unsigned Column, F &&Matches,
     // If this is the first matching token to be aligned, remember by how many
     // spaces it has to be shifted, so the rest of the changes on the line are
     // shifted by the same amount
+
     if (!FoundMatchOnLine && !InsideNestedScope && Matches(Changes[i])) {
       FoundMatchOnLine = true;
       Shift = Column - Changes[i].StartOfTokenColumn;
@@ -359,9 +362,10 @@ static unsigned AlignTokens(const FormatStyle &Style, F &&Matches,
   // We need to adjust the StartOfTokenColumn of each Change that is on a line
   // containing any matching token to be aligned and located after such token.
   auto AlignCurrentSequence = [&] {
-    if (StartOfSequence > 0 && StartOfSequence < EndOfSequence)
+    if (StartOfSequence > 0 && StartOfSequence < EndOfSequence){
       AlignTokenSequence(StartOfSequence, EndOfSequence, MinColumn, Matches,
                          Changes);
+    }
     MinColumn = 0;
     MaxColumn = UINT_MAX;
     StartOfSequence = 0;
@@ -395,9 +399,9 @@ static unsigned AlignTokens(const FormatStyle &Style, F &&Matches,
 
     if (!Matches(Changes[i]))
       continue;
-
     // If there is more than one matching token per line, or if the number of
     // preceding commas, do not match anymore, end the sequence.
+ 
     if (FoundMatchOnLine || CommasBeforeMatch != CommasBeforeLastMatch)
       AlignCurrentSequence();
 
@@ -429,6 +433,216 @@ static unsigned AlignTokens(const FormatStyle &Style, F &&Matches,
   return i;
 }
 
+template <typename F>
+static void
+AlignListTokenSequence(unsigned Start, unsigned End, unsigned Column, F &&Matches,
+                    SmallVector<WhitespaceManager::Change, 16> &Changes, SmallVector<SmallVector< std::pair <unsigned,unsigned>, 16>,16> &Scopes){
+  bool FoundMatchOnLine = false;
+  int Shift = 0;
+  int ScopeLevel=0;
+  SmallVector<unsigned, 16> ScopeStack;
+  int Commas = 0;
+  int PreviousShift = 0;
+
+  for (int j = 1; j < Scopes.size(); j++){
+    auto m = std::minmax_element(Scopes[j].begin(), Scopes[j].end());
+    int max = m.second->first;
+    int ml = m.second->second;
+    if(Scopes[j].size()>0)
+    Scopes[0].push_back(std::make_pair(max,ml));
+  }
+for(unsigned i = Start; i != End; ++i) {
+
+    if (ScopeStack.size() != 0 && 
+        Changes[i].indentAndNestingLevel() <
+            Changes[ScopeStack.back()].indentAndNestingLevel()){
+      ScopeStack.pop_back();
+    }
+    if(Changes[i].Tok->is(tok::comma)){
+        Commas++;
+    } else if(Changes[i].Tok->BlockKind == BK_BracedInit)
+      Commas = 0;
+    if(Changes[i].Tok->is(tok::l_brace)){
+      ScopeLevel++;
+      PreviousShift = 0;
+    }
+    unsigned PreviousNonComment = i - 1;
+    while(PreviousNonComment > Start &&
+          Changes[PreviousNonComment].Tok->is(tok::comment))
+      PreviousNonComment--;
+    bool InsideNestedScope = ScopeStack.size() != 0;
+
+    if (Changes[i].NewlinesBefore > 0 && !InsideNestedScope) {
+      Shift = 0;
+      FoundMatchOnLine = false;
+    }
+          
+    std::cout<<"Scopes VECTOR Commas::"<<Commas<<"\n\n";
+     for (int j = 0; j<Scopes[Commas].size() ; j++){
+       std::cout<<Scopes[Commas][j].first<<"  ";
+     }
+     std::cout<<std::endl;
+    if(!FoundMatchOnLine && Matches(Changes[i])) {
+      FoundMatchOnLine = true;
+      auto m = std::minmax_element(Scopes[Commas].begin(), Scopes[Commas].end());
+      int max = m.second->first;
+      int l = Commas > 0 ? max +2: Changes[i].StartOfTokenColumn;
+    if(Commas > 0)
+      Shift = Scopes[0][Commas-1].first-Changes[i].PreviousEndOfTokenColumn;
+
+      
+    Changes[i].Spaces += Shift;
+    FoundMatchOnLine = false;
+    // This is for function parameters that are split across multiple lines,
+    // as mentioned in the ScopeStack comment.
+    if (InsideNestedScope && Changes[i].NewlinesBefore > 0) {
+      unsigned ScopeStart = ScopeStack.back();
+      if (Changes[ScopeStart - 1].Tok->is(TT_FunctionDeclarationName) ||
+          (ScopeStart > Start + 1 &&
+           Changes[ScopeStart - 2].Tok->is(TT_FunctionDeclarationName)))
+        Changes[i].Spaces += Shift;
+    }
+    assert(Shift > 0);
+    Changes[i].StartOfTokenColumn += Shift;
+    auto m = std::minmax_element(Scopes[Commas].begin(), Scopes[Commas].end());
+       int max = m.second->first;
+      if(Matches(Changes[i]))
+    Changes[i].StartOfTokenColumn = max + 2;
+     if (i + 1 != Changes.size())
+       Changes[i + 1].PreviousEndOfTokenColumn += Shift;
+     auto t = std::minmax_element(Scopes[Commas].begin(), Scopes[Commas].end());
+     int len_max = t.second->second;
+     
+     if(Scopes[Commas+1].size()!=0 && Commas>0){
+     if(Commas == 2)
+     Scopes[0][Commas] = std::make_pair((Scopes[0][Commas-1].first +Scopes[0][Commas-1].second + Shift),0); 
+      PreviousShift = Shift;
+     }
+      
+  }
+
+}
+
+
+
+
+
+static unsigned AlignListTokens(const FormatStyle &Style, 
+                          SmallVector<WhitespaceManager::Change, 16> &Changes,
+                          unsigned StartAt) {
+  unsigned MinColumn = 0;
+  unsigned MaxColumn = UINT_MAX;
+  unsigned ST=0;
+
+  unsigned StartOfSequence = 0;
+  unsigned EndOfSequence = 0;
+  auto IndentAndNestingLevel = StartAt < Changes.size()
+                                  ? Changes[StartAt].indentAndNestingLevel()
+                                  : std::pair<unsigned, unsigned>(0,0);
+
+  unsigned CommasBeforeLastMatch = 0;
+  unsigned CommasBeforeMatch = 0;
+  SmallVector<SmallVector< std::pair <unsigned,unsigned>,16>,16> Scopes;
+  Scopes.resize(16);
+  bool FoundMatchOnLine = false;
+  bool FoundList = false;
+  bool proceed = false;
+  auto Matches = [&](const WhitespaceManager::Change C){
+      if(C.Tok->Previous)
+        if(C.Tok->Previous->is(tok::comma) && 
+            C.Tok->isOneOf(tok::identifier, tok::string_literal, tok::numeric_constant)) {
+           return true;
+        }
+      return false;
+  };
+
+  auto AlignCurrentListSequence = [&] {
+    if (StartOfSequence > 0 && StartOfSequence < EndOfSequence){
+      AlignListTokenSequence(StartOfSequence, EndOfSequence, MinColumn, Matches,
+                         Changes,  Scopes);
+    }
+
+    MinColumn = 0;
+    MaxColumn = UINT_MAX;
+    StartOfSequence =0;
+    EndOfSequence =0;
+  };
+
+  
+  unsigned i = StartAt;
+  for (unsigned e = Changes.size(); i != e; ++i) {
+    if(Changes[i].NewlinesBefore != 0) {
+      CommasBeforeMatch = 0;
+      EndOfSequence = i;
+      if(Changes[i].NewlinesBefore > 1 || !FoundMatchOnLine){
+        ST = i;
+        AlignCurrentListSequence();
+      }
+      FoundMatchOnLine = false;
+    }
+    
+    if(Changes[i].Tok->is(tok::comma)) {
+      ++CommasBeforeMatch;
+    } else if(Changes[i].Tok->is(tok::l_brace)) {
+      if( Changes[i + 1].Tok->is(tok::l_brace)){
+      FoundList = true;
+      EndOfSequence = i;
+      AlignCurrentListSequence();
+      StartOfSequence = i+1;
+      proceed =false;
+      
+      
+      }
+    } 
+   if (Changes[i].Tok->is(tok::r_brace) && FoundList && Changes[i].Tok->Previous->is(tok::r_brace)){
+      FoundList = false;
+      proceed =true;
+      EndOfSequence = i;
+      if((proceed) &&( FoundMatchOnLine || CommasBeforeMatch != CommasBeforeLastMatch)){
+      AlignCurrentListSequence();
+      proceed = false;
+    }
+ 
+    }
+    
+    if (FoundList && Matches(Changes[i])){
+      FoundMatchOnLine = true;
+        Scopes[CommasBeforeMatch].push_back(std::make_pair(Changes[i].PreviousEndOfTokenColumn,Changes[i].TokenLength));
+    } else{
+      continue;
+    }
+    
+    CommasBeforeLastMatch = CommasBeforeMatch;
+    FoundMatchOnLine = true;
+
+    if (StartOfSequence == 0){
+      StartOfSequence = ST;
+    }
+
+    unsigned ChangeMinColumn = Changes[i].StartOfTokenColumn;
+    int LineLengthAfter = -Changes[i].Spaces;
+    for (unsigned j =i; j != e && Changes[j].NewlinesBefore == 0; ++j)
+      LineLengthAfter += Changes[j].Spaces + Changes[j].TokenLength;
+    unsigned ChangeMaxColumn = Style.ColumnLimit - LineLengthAfter;
+
+    if(ChangeMinColumn > MaxColumn || ChangeMaxColumn < MinColumn ||
+        CommasBeforeLastMatch != CommasBeforeMatch) {
+      AlignCurrentListSequence();
+      StartOfSequence = i; 
+    }
+
+    MinColumn = std::max(MinColumn, ChangeMinColumn);
+    MaxColumn = std::min(MaxColumn, ChangeMaxColumn);
+  } 
+
+  EndOfSequence = i; 
+  AlignCurrentListSequence();
+  return i;
+}
+
+
+
+
 // Aligns a sequence of matching tokens, on the MinColumn column.
 //
 // Sequences start from the first matching token to align, and end at the
@@ -442,14 +656,12 @@ static void AlignMacroSequence(
     std::function<bool(const WhitespaceManager::Change &C)> AlignMacrosMatches,
     SmallVector<WhitespaceManager::Change, 16> &Changes) {
   if (StartOfSequence > 0 && StartOfSequence < EndOfSequence) {
-
     FoundMatchOnLine = false;
     int Shift = 0;
 
     for (unsigned I = StartOfSequence; I != EndOfSequence; ++I) {
       if (Changes[I].NewlinesBefore > 0) {
         Shift = 0;
-        FoundMatchOnLine = false;
       }
 
       // If this is the first matching token to be aligned, remember by how many
@@ -571,6 +783,14 @@ void WhitespaceManager::alignConsecutiveAssignments() {
         return C.Tok->is(tok::equal);
       },
       Changes, /*StartAt=*/0);
+}
+
+void WhitespaceManager::alignConsecutiveLists() {
+  if(!Style.AlignConsecutiveLists)
+    return;
+  AlignListTokens(
+      Style,
+      Changes, /*StartAt=*/0); 
 }
 
 void WhitespaceManager::alignConsecutiveDeclarations() {

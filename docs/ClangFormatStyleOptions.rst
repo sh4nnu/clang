@@ -227,6 +227,8 @@ the configuration (without a prefix: ``Auto``).
     #define EVEN_LONGER_NAME (2)
     #define foo(x)           (x * x)
     #define bar(y, z)        (y + z)
+**AlignConsecutiveLists** (``bool``)
+  
 
 **AlignEscapedNewlines** (``EscapedNewlineAlignmentStyle``)
   Options for aligning backslashes in escaped newlines.

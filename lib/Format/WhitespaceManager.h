@@ -180,6 +180,9 @@ private:
   /// Align consecutive declarations over all \c Changes.
   void alignConsecutiveDeclarations();
 
+  /// Align elements of Consecutive elements in a cpp braced list.
+  void alignConsecutiveLists();
+
   /// Align trailing comments over all \c Changes.
   void alignTrailingComments();
 

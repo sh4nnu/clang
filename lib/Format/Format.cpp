@@ -356,6 +356,8 @@ template <> struct MappingTraits<FormatStyle> {
                    Style.AlignConsecutiveAssignments);
     IO.mapOptional("AlignConsecutiveDeclarations",
                    Style.AlignConsecutiveDeclarations);
+    IO.mapOptional("AlignConsecutiveLists",
+                   Style.AlignConsecutiveLists);
     IO.mapOptional("AlignEscapedNewlines", Style.AlignEscapedNewlines);
     IO.mapOptional("AlignOperands", Style.AlignOperands);
     IO.mapOptional("AlignTrailingComments", Style.AlignTrailingComments);
@@ -1040,6 +1042,7 @@ FormatStyle getMicrosoftStyle(FormatStyle::LanguageKind Language) {
 FormatStyle getNetBSDStyle() {
 	  FormatStyle NetBSDStyle = getLLVMStyle();
 	  NetBSDStyle.AlignTrailingComments = true;
+    NetBSDStyle.AlignConsecutiveLists = true;
 	  NetBSDStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_AllDefinitions;
 	  NetBSDStyle.AlignConsecutiveMacros = true;
     NetBSDStyle.BitFieldDeclarationsOnePerLine = true;
@@ -1095,7 +1098,7 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
     *Style = getGNUStyle();
   } else if (Name.equals_lower("microsoft")) {
     *Style = getMicrosoftStyle(Language);
-  }  else if (Name.equals_lower("netbsd")) {
+  } else if (Name.equals_lower("netbsd")) {
     *Style = getNetBSDStyle();
   }  else if (Name.equals_lower("none")) {
     *Style = getNoStyle();
