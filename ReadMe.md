@@ -9,7 +9,7 @@ For more details about what I have done during GSoC 2019, you can refer to these
 * [GSoC 2019 Report: Adding NetBSD KNF to clang-format, Part 2](http://blog.netbsd.org/tnf/entry/gsoc_2019_report_adding_netbsd)
 *  
 
-## ** Branch  gsoc-netbsdKNF**
+##  Branch  gsoc-netbsdKNF
 This is the main branch I have been working on. This is a forked repository of [llvm-mirror/clang](https://github.com/llvm-mirror/clang).
 
 The branch contains the following changes:
