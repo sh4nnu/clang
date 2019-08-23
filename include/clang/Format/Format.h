@@ -2111,6 +2111,10 @@ FormatStyle getGNUStyle();
 /// Returns style indicating formatting should be not applied at all.
 FormatStyle getNoStyle();
 
+/// Returns a format style complying with NetBSD Coding Standards:
+/// http://cvsweb.netbsd.org/bsdweb.cgi/src/share/misc/style?rev=HEAD&content-type=text/x-cvsweb-markup
+FormatStyle getNetBSDStyle();
+
 /// Gets a predefined style for the specified language by name.
 ///
 /// Currently supported names: LLVM, Google, Chromium, Mozilla. Names are

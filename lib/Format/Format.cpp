@@ -1036,6 +1036,24 @@ FormatStyle getMicrosoftStyle(FormatStyle::LanguageKind Language) {
   return Style;
 }
 
+FormatStyle getNetBSDStyle() {
+	  FormatStyle NetBSDStyle = getLLVMStyle();
+	  NetBSDStyle.AlignTrailingComments = true;
+	  NetBSDStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_AllDefinitions;
+	  NetBSDStyle.AlignConsecutiveMacros = true;
+	  NetBSDStyle.BreakBeforeBraces = FormatStyle::BS_Mozilla;
+	  NetBSDStyle.ColumnLimit = 80;
+	  NetBSDStyle.ContinuationIndentWidth = 4;
+	  NetBSDStyle.Cpp11BracedListStyle = false;
+	  NetBSDStyle.FixNamespaceComments = true;
+	  NetBSDStyle.IndentCaseLabels = false;
+	  NetBSDStyle.IndentWidth = 8;
+	  NetBSDStyle.SortIncludes = true;
+	  NetBSDStyle.TabWidth = 8;
+	  NetBSDStyle.UseTab = FormatStyle::UT_Always;
+	  return NetBSDStyle;
+	}
+
 FormatStyle getNoStyle() {
   FormatStyle NoStyle = getLLVMStyle();
   NoStyle.DisableFormat = true;
@@ -1060,7 +1078,9 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
     *Style = getGNUStyle();
   } else if (Name.equals_lower("microsoft")) {
     *Style = getMicrosoftStyle(Language);
-  } else if (Name.equals_lower("none")) {
+  }  else if (Name.equals_lower("netbsd")) {
+    *Style = getNetBSDStyle();
+  }  else if (Name.equals_lower("none")) {
     *Style = getNoStyle();
   } else {
     return false;
